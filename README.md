@@ -9,7 +9,7 @@ graphs of price histories for selected cryptocurrencies tied to registered
 crypto-wallets.
 It also updates the estimated value for your coins in a currency of your choice.
 
-## Used Libraries and Language
+## Used Libraries, Third-Party and Language
 
 * Language: **C++**
 * Tools:
@@ -20,6 +20,8 @@ It also updates the estimated value for your coins in a currency of your choice.
   * **Curl**
   * **SQLite3**
   * **https://github.com/nlohmann/json**
+  * **CoinMarketCap-API**
+  * **Blockchaininfo-API**
 
 ## Inteded Use
 
