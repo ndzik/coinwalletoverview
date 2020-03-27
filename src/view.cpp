@@ -98,55 +98,25 @@ namespace cwo {
         case 'q' :
           _running = false;
           break;
+        case 'v' :
+          GRAPHEXPANSION = 0;
+          _szchanged = true;
+          break;
+        case 'h' :
+          GRAPHEXPANSION = 1;
+          _szchanged = true;
+          break;
         default:
           break;
       }
 
       /* main rendering */
       switch (_state) {
-        case 0 : {
-                   if (_szchanged) {
-                     wclear(overviewwin);
-                     wclear(coinviewwin);
-                     for (auto &a : _graphs) {
-                       wclear(a.first);
-                       wclear(a.second);
-                       wrefresh(a.first);
-                       wrefresh(a.second);
-                     }
-                     wrefresh(overviewwin);
-                     wrefresh(coinviewwin);
-                     _szchanged = false;
-                     _updated = true;
-                     adjustmainwins();
-                     adjustgraphs();
-                   }
-
-                   /* update contents of windows */
-                   if (_updated) {
-                     _updated = false;
-                     for (auto &a : _graphs) {
-                       werase(a.first);
-                       werase(a.second);
-                     }
-                     /* draw graphs */
-                     displaygraphinfo();
-                     drawmetainfo();
-                     wnoutrefresh(coinviewwin);
-
-                     /* draw wallet information */
-                     int x, y;
-                     getmaxyx(overviewwin, y, x);
-                     displaywalletinfo(overviewwin, y-1, x);
-                     wnoutrefresh(overviewwin);
-
-                     /* draw updated content to screen */
-                     doupdate();
-                   }
-                   break;
-                 }
+        case 0 :
+          mainmenu();
+          break;
         default:
-                 break;
+          break;
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
@@ -160,6 +130,48 @@ namespace cwo {
     delwin(overviewwin);
     delwin(coinviewwin);
     endwin();
+  }
+
+  void View::mainmenu()
+  {
+    if (_szchanged) {
+      wclear(overviewwin);
+      wclear(coinviewwin);
+      for (auto &a : _graphs) {
+        wclear(a.first);
+        wclear(a.second);
+        wrefresh(a.first);
+        wrefresh(a.second);
+      }
+      wrefresh(overviewwin);
+      wrefresh(coinviewwin);
+      _szchanged = false;
+      _updated = true;
+      adjustmainwins();
+      adjustgraphs();
+    }
+
+    /* update contents of windows */
+    if (_updated) {
+      _updated = false;
+      for (auto &a : _graphs) {
+        werase(a.first);
+        werase(a.second);
+      }
+      /* draw graphs */
+      displaygraphinfo();
+      drawmetainfo();
+      wnoutrefresh(coinviewwin);
+
+      /* draw wallet information */
+      int x, y;
+      getmaxyx(overviewwin, y, x);
+      displaywalletinfo(overviewwin, y-1, x);
+      wnoutrefresh(overviewwin);
+
+      /* draw updated content to screen */
+      doupdate();
+    }
   }
 
   void View::hgraphexpansion()
@@ -253,14 +265,14 @@ namespace cwo {
       /* ...for col... */
       for (int32_t j=0; j<gpl; ++j) {
         if (!calcgraphdimensions(&bitmask, gpl, houtergraph, woutergraph,
-              hratio, wratio, ln, j)) break;
+              hratio, wratio, ln, j, begy, begx)) break;
 
         werase(_graphs[ln*gpl+j].first);
         wborder(_graphs[ln*gpl+j].first,
             ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
         werase(_graphs[ln*gpl+j].second);
-        wresize(_graphs[ln*gpl+j].first, houtergraph-2, woutergraph);
-        mvwin(_graphs[ln*gpl+j].first, 1+ln*hratio, 1+j*wratio);
+        wresize(_graphs[ln*gpl+j].first, houtergraph, woutergraph);
+        mvwin(_graphs[ln*gpl+j].first, begy, begx);
         getmaxyx(_graphs[ln*gpl+j].first, locy, locx);
         getbegyx(_graphs[ln*gpl+j].first, begy, begx);
         wresize(_graphs[ln*gpl+j].second, locy-2, locx-2);
@@ -274,13 +286,24 @@ namespace cwo {
 
   bool View::calcgraphdimensions(std::vector<uint8_t> *v, int gpl,
       int &houtergraph, int &woutergraph, int hratio, int wratio,
-      uint32_t ln, int32_t j)
+      uint32_t ln, int32_t j, int &y, int &x)
   {
+    uint64_t maxln = v->size()/gpl;
+    if (ln == 0 || (j == 0 && maxln == _graphs.size()))
+      y = 1+ln*hratio;
+    else
+      y = ln*hratio;
+    x = 1+j*wratio;
     /* ...if 0 then no window is to be created... */
     if (v->at(ln*gpl+j) == 0) return false;
     /* ...else create two new windows... */
     if (GRAPHEXPANSION == 0) { /* horizontal expansion */
-      houtergraph = hratio;
+      if (maxln == 1) /* if only a single line exists */
+        houtergraph = hratio-2;
+      else if (maxln == _graphs.size()) /* each graph own line */
+        houtergraph = hratio;
+      else
+        houtergraph = hratio-1;
       woutergraph = wratio;
       if ((j<gpl-1) && (v->at(ln*gpl+j+1) != 1)) {
         for (int k=j; k<gpl-1; ++k) {
@@ -288,10 +311,15 @@ namespace cwo {
         }
       }
     } else { /* vertical expansion */
-      houtergraph = hratio;
+      if (maxln == 1) /* if only a single line exists */
+        houtergraph = hratio-2;
+      else if (maxln == _graphs.size()) /* each graph own line */
+        houtergraph = hratio;
+      else
+        houtergraph = hratio-1;
       woutergraph = wratio;
-      if ((ln<(v->size()/gpl-1) && (v->at((ln+1)*gpl+j) != 1))) {
-        houtergraph += hratio;
+      if ((ln<(maxln-1) && (v->at((ln+1)*gpl+j) != 1))) {
+        houtergraph += hratio-1;
       }
     }
     return true;
@@ -368,7 +396,7 @@ namespace cwo {
       /* ...for col... */
       for (int32_t j=0; j<gpl; ++j) {
         if (!calcgraphdimensions(&bitmask, gpl, houtergraph, woutergraph,
-              hratio, wratio, ln, j)) break;
+              hratio, wratio, ln, j, begy, begx)) break;
         WINDOW *graphout = newwin(houtergraph-2, woutergraph,
             1+ln*hratio, 1+j*wratio);
         getmaxyx(graphout, locy, locx);

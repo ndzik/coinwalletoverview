@@ -153,12 +153,18 @@ namespace cwo {
       int setbitmask(std::vector<uint8_t> *v, int maxy, int maxx);
 
       /*
+       * Draw main menu
+       */
+      void mainmenu();
+
+      /*
        * Auxiliary function for deciding width/height of a graph-window
+       * and y and x position
        * @returns bool -> true if a window is to be created
        */
       bool calcgraphdimensions(std::vector<uint8_t> *v, int gpl,
       int &houtergraph, int &woutergraph, int hratio, int wratio,
-      uint32_t ln, int32_t j);
+      uint32_t ln, int32_t j, int &y, int &x);
 
       /*
        * Auxiliary function to decide on which currency symbol to use
