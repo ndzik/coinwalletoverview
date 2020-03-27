@@ -2,7 +2,7 @@
 
 ## Overview
 
-![Alpha 0.1] (/images/cwofull.png)
+![Alpha 0.1] (/source/images/v01/cwofull.png)
 
 CoinWalletOverview (CWO) is a program which runs in a command-line. It displays
 graphs of price histories for selected cryptocurrencies tied to registered
@@ -34,6 +34,6 @@ Working on it whenever there is time ;D
 
 For now two more pictures in different sizes.
 
-![Adaptive Graphs 1] (/images/cwohalf.png)
+![Adaptive Graphs 1] (/source/images/v01/cwohalf.png)
 
-![Adaptive Graphs 2] (/images/cwosmall.png)
+![Adaptive Graphs 2] (/source/images/v01/cwosmall.png)
