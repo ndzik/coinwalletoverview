@@ -81,6 +81,7 @@ namespace cwo {
       int LOFFSETIG = 8;
       int BOFFESTIG = 0;
       int GRAPHEXPANSION = 1;
+      bool FILL = true;
       DATARES DATARESOLUTION = M;
       const char* GRAPH_SYMBOL = "*";
 

@@ -107,6 +107,10 @@ namespace cwo {
           GRAPHEXPANSION = 1;
           _szchanged = true;
           break;
+        case 'f':
+          FILL = !FILL;
+          _szchanged = true;
+          break;
         case '1':
           DATARESOLUTION = M;
           _szchanged = true;
@@ -452,6 +456,10 @@ namespace cwo {
     getmaxyx(g.second, maxy, maxx);
     maxy = maxy-3;
     maxx = maxx-1;
+    /* draw min and max value to y-axis */
+    const char *strformat = v[i].price > 1 ? "%4.3f" : "%1.6f";
+    mvwprintw(g.second, 0, 0, strformat, range[1]);
+    mvwprintw(g.second, maxy, 0, strformat, range[0]);
     for (int x=maxx; x>LOFFSETIG && i>=0 && cnt<v.size(); ++cnt, --x, --i) {
       int y = (double)maxy*(v[i].price-range[0])/(range[1]-range[0]);
       y = maxy-y; /* invert axis */
@@ -463,10 +471,12 @@ namespace cwo {
       }
       wattron(g.second, COLOR_PAIR(2));
       mvwprintw(g.second, y, x, GRAPH_SYMBOL);
-      wmove(g.second, y+1, x);
-      wvline(g.second, ACS_BLOCK, maxy-y);
+      if (FILL) {
+        wmove(g.second, y+1, x);
+        wvline(g.second, ACS_BLOCK, maxy-y);
+      }
       wattroff(g.second, COLOR_PAIR(2));
-      const char *strformat = v[i].price > 1 ? "%4.3f" : "%1.6f";
+      strformat = v[i].price > 1 ? "%4.3f" : "%1.6f";
       mvwprintw(g.second, y, 0, strformat, v[i].price);
     }
     std::string s;
