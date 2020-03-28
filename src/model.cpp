@@ -233,7 +233,9 @@ namespace cwo {
   }
 
   int Model::callbackempty(void *vec, int argc, char **argv, char **azcolname)
-  { return 0; }
+  {
+    return 0;
+  }
 
   int Model::callbackdata(void *vec, int argc, char **argv, char **azcolname)
   {
@@ -262,18 +264,17 @@ namespace cwo {
     return 0;
   }
 
-  void Model::selectdata(CRYPTOTYPE t, std::vector<Statistic> *v, int limit)
+  void Model::selectdatabymin(CRYPTOTYPE t,
+      std::vector<Statistic> *v, int limit)
   {
     std::stringstream sql;
     char *err;
-    if (limit == 0)
-      sql << "SELECT * FROM " << DBNAME.at(t) << ";";
-    else
-      sql << "SELECT * FROM ("
-        << " SELECT * FROM " << DBNAME.at(t)
-        << " ORDER BY DATA_TD DESC LIMIT " << limit << ")"
-        << " ORDER BY DATA_TD ASC;";
-    int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackdata, v, &err);
+    sql << "SELECT * FROM ("
+      << " SELECT * FROM " << DBNAME.at(t)
+      << " ORDER BY DATA_TD DESC LIMIT " << limit << ")"
+      << " ORDER BY DATA_TD ASC;";
+    int rc = sqlite3_exec(_db, sql.str().c_str(),
+        &Model::callbackdata, v, &err);
     if (rc != SQLITE_OK) {
       v->clear();
       fprintf(stderr, "SQL error: %s\n", err);
@@ -281,18 +282,57 @@ namespace cwo {
     }
   }
 
-  std::array<double, 2> Model::minmax(CRYPTOTYPE t, int limit)
+  void Model::selectdatabyhour(CRYPTOTYPE t,
+      std::vector<Statistic> *v, int limit)
+  {
+    std::stringstream sql;
+    char *err;
+    sql << "SELECT * FROM ("
+      << "SELECT STRFTIME('%Y-%m-%d %H:00:00.000', DATA_TD) AS ACCDT,"
+      << " AVG(DATA_PRICE)"
+      << " FROM " << DBNAME.at(t)
+      << " GROUP BY ACCDT"
+      << " ORDER BY ACCDT DESC LIMIT " << limit  << ")"
+      << " ORDER BY ACCDT ASC;";
+    int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackdata, v,
+        &err);
+    if (rc != SQLITE_OK) {
+      v->clear();
+      fprintf(stderr, "SQL error: %s\n", err);
+      sqlite3_free(err);
+    }
+  }
+
+  void Model::selectdatabyday(CRYPTOTYPE t,
+      std::vector<Statistic> *v, int limit)
+  {
+    std::stringstream sql;
+    char *err;
+    sql << "SELECT * FROM ("
+      << "SELECT STRFTIME('%Y-%m-%d 00:00:00.000', DATA_TD) AS ACCDT,"
+      << " AVG(DATA_PRICE)"
+      << " FROM " << DBNAME.at(t)
+      << " GROUP BY ACCDT"
+      << " ORDER BY ACCDT DESC LIMIT " << limit  << ")"
+      << " ORDER BY ACCDT ASC;";
+    int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackdata, v,
+        &err);
+    if (rc != SQLITE_OK) {
+      v->clear();
+      fprintf(stderr, "SQL error: %s\n", err);
+      sqlite3_free(err);
+    }
+  }
+
+  std::array<double, 2> Model::minmaxmin(CRYPTOTYPE t, int limit)
   {
     std::stringstream sql;
     char *err;
     double min = 0;
     double max = 0;
-    if (limit == 0)
-      sql << "SELECT MIN(DATA_PRICE) FROM " << DBNAME.at(t) << ";";
-    else
-      sql << "SELECT MIN(DATA_PRICE) FROM ("
-       << "SELECT * FROM " << DBNAME.at(t)
-       << " ORDER BY DATA_TD DESC " << "limit " << limit << ");";
+    sql << "SELECT MIN(DATA_PRICE) FROM ("
+     << "SELECT * FROM " << DBNAME.at(t)
+     << " ORDER BY DATA_TD DESC " << "limit " << limit << ");";
     int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackselectsingle,
         &min, &err);
     if (rc != SQLITE_OK) {
@@ -300,12 +340,77 @@ namespace cwo {
       sqlite3_free(err);
     }
     sql.str(std::string());
-    if (limit == 0)
-      sql << "SELECT MAX(DATA_PRICE) FROM " << DBNAME.at(t) << ";";
-    else
-      sql << "SELECT MAX(DATA_PRICE) FROM ("
-       << "SELECT * FROM " << DBNAME.at(t)
-       << " ORDER BY DATA_TD DESC " << "limit " << limit << ");";
+    sql << "SELECT MAX(DATA_PRICE) FROM ("
+     << "SELECT * FROM " << DBNAME.at(t)
+     << " ORDER BY DATA_TD DESC " << "limit " << limit << ");";
+    rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackselectsingle,
+        &max, &err);
+    if (rc != SQLITE_OK) {
+      fprintf(stderr, "SQL error: %s\n", err);
+      sqlite3_free(err);
+    }
+    return {min, max};
+  }
+
+  std::array<double, 2> Model::minmaxhour(CRYPTOTYPE t, int limit)
+  {
+    std::stringstream sql;
+    char *err;
+    double min = 0;
+    double max = 0;
+    sql << "SELECT MIN(DATA_PRICE) FROM ("
+      << "SELECT STRFTIME('%Y-%m-%d %H:00:00.000', DATA_TD) AS ACCDT,"
+      << " DATA_PRICE"
+      << " FROM " << DBNAME.at(t)
+      << " GROUP BY ACCDT"
+      << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
+    int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackselectsingle,
+        &min, &err);
+    if (rc != SQLITE_OK) {
+      fprintf(stderr, "SQL error: %s\n", err);
+      sqlite3_free(err);
+    }
+    sql.str(std::string());
+    sql << "SELECT MAX(DATA_PRICE) FROM ("
+      << "SELECT STRFTIME('%Y-%m-%d %H:00:00.000', DATA_TD) AS ACCDT,"
+      << " DATA_PRICE"
+      << " FROM " << DBNAME.at(t)
+      << " GROUP BY ACCDT"
+      << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
+    rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackselectsingle,
+        &max, &err);
+    if (rc != SQLITE_OK) {
+      fprintf(stderr, "SQL error: %s\n", err);
+      sqlite3_free(err);
+    }
+    return {min, max};
+  }
+
+  std::array<double, 2> Model::minmaxday(CRYPTOTYPE t, int limit)
+  {
+    std::stringstream sql;
+    char *err;
+    double min = 0;
+    double max = 0;
+    sql << "SELECT MIN(DATA_PRICE) FROM ("
+      << "SELECT STRFTIME('%Y-%m-%d 00:00:00.000', DATA_TD) AS ACCDT,"
+      << " DATA_PRICE"
+      << " FROM " << DBNAME.at(t)
+      << " GROUP BY ACCDT"
+      << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
+    int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackselectsingle,
+        &min, &err);
+    if (rc != SQLITE_OK) {
+      fprintf(stderr, "SQL error: %s\n", err);
+      sqlite3_free(err);
+    }
+    sql.str(std::string());
+    sql << "SELECT MAX(DATA_PRICE) FROM ("
+      << "SELECT STRFTIME('%Y-%m-%d 00:00:00.000', DATA_TD) AS ACCDT,"
+      << " DATA_PRICE"
+      << " FROM " << DBNAME.at(t)
+      << " GROUP BY ACCDT"
+      << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
     rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackselectsingle,
         &max, &err);
     if (rc != SQLITE_OK) {
@@ -386,7 +491,8 @@ namespace cwo {
         "DATA_TD DATETIME PRIMARY KEY NOT NULL,"
         "DATA_PRICE MONEY NOT NULL"
         ");" ;
-      int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackempty, 0, &err);
+      int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackempty, 0,
+          &err);
       if (rc != SQLITE_OK) {
         fprintf(stderr, "SQL error: %s\n", err);
         sqlite3_free(err);
@@ -401,7 +507,8 @@ namespace cwo {
     sql << "INSERT INTO " << DBNAME.at(t) << "(DATA_TD, DATA_PRICE) "
       "VALUES (CURRENT_TIMESTAMP, " << price << "); "
       ;
-    int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackempty,  0, &err);
+    int rc = sqlite3_exec(_db, sql.str().c_str(), &Model::callbackempty, 0,
+        &err);
     if (rc != SQLITE_OK) {
       fprintf(stderr, "SQL error: %s\n", err);
       sqlite3_free(err);

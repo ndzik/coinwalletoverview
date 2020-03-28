@@ -80,6 +80,7 @@ namespace cwo {
     box(overviewwin, 0, 0);
     wnoutrefresh(overviewwin);
 
+
     creategraphs();
     _updated = true;
     uint64_t counter = 0;
@@ -104,6 +105,18 @@ namespace cwo {
           break;
         case 'h' :
           GRAPHEXPANSION = 1;
+          _szchanged = true;
+          break;
+        case '1':
+          DATARESOLUTION = M;
+          _szchanged = true;
+          break;
+        case '2':
+          DATARESOLUTION = H;
+          _szchanged = true;
+          break;
+        case '3':
+          DATARESOLUTION = D;
           _szchanged = true;
           break;
         default:
@@ -284,18 +297,19 @@ namespace cwo {
     }
   }
 
-  bool View::calcgraphdimensions(std::vector<uint8_t> *v, int gpl,
+  bool View::calcgraphdimensions(std::vector<uint8_t> *bitmask, int gpl,
       int &houtergraph, int &woutergraph, int hratio, int wratio,
       uint32_t ln, int32_t j, int &y, int &x)
   {
-    uint64_t maxln = v->size()/gpl;
+    uint64_t maxln = bitmask->size()/gpl;
+    /* if graph is below another graph, or each graph has its own line */
     if (ln == 0 || (j == 0 && maxln == _graphs.size()))
       y = 1+ln*hratio;
     else
       y = ln*hratio;
     x = 1+j*wratio;
-    /* ...if 0 then no window is to be created... */
-    if (v->at(ln*gpl+j) == 0) return false;
+    /* ...if 0 in bitmask then no window is to be created... */
+    if (bitmask->at(ln*gpl+j) == 0) return false;
     /* ...else create two new windows... */
     if (GRAPHEXPANSION == 0) { /* horizontal expansion */
       if (maxln == 1) /* if only a single line exists */
@@ -305,7 +319,7 @@ namespace cwo {
       else
         houtergraph = hratio-1;
       woutergraph = wratio;
-      if ((j<gpl-1) && (v->at(ln*gpl+j+1) != 1)) {
+      if ((j<gpl-1) && (bitmask->at(ln*gpl+j+1) != 1)) {
         for (int k=j; k<gpl-1; ++k) {
           woutergraph += wratio;
         }
@@ -318,7 +332,7 @@ namespace cwo {
       else
         houtergraph = hratio-1;
       woutergraph = wratio;
-      if ((ln<(maxln-1) && (v->at((ln+1)*gpl+j) != 1))) {
+      if ((ln<(maxln-1) && (bitmask->at((ln+1)*gpl+j) != 1))) {
         houtergraph += hratio-1;
       }
     }
@@ -343,9 +357,11 @@ namespace cwo {
       ypos = (idx%h == 0) ? 1 : idx%h;
       CRYPTOTYPE t = wallet[idx-1]->crypto();
       wattron(win, A_BOLD);
+      /* Print crypto asset name */
       mvwprintw(win, ypos, row*widthofrow+1, "%s",
           CRTOS.at(t).c_str());
       wattroff(win, A_BOLD);
+      /* Print addr of wallet */
       mvwprintw(win, ypos, row*widthofrow+1+3, " : %s",
           addr.c_str());
       wattron(win, A_BOLD);
@@ -434,7 +450,7 @@ namespace cwo {
     double maxx, maxy, cnt=0;
     uint64_t i = v.size()-1;
     getmaxyx(g.second, maxy, maxx);
-    maxy = maxy-2;
+    maxy = maxy-3;
     maxx = maxx-1;
     for (int x=maxx; x>LOFFSETIG && i>=0 && cnt<v.size(); ++cnt, --x, --i) {
       int y = (double)maxy*(v[i].price-range[0])/(range[1]-range[0]);
@@ -452,9 +468,24 @@ namespace cwo {
       wattroff(g.second, COLOR_PAIR(2));
       const char *strformat = v[i].price > 1 ? "%4.3f" : "%1.6f";
       mvwprintw(g.second, y, 0, strformat, v[i].price);
-      wnoutrefresh(g.first);
-      wnoutrefresh(g.second);
     }
+    std::string s;
+    switch (DATARESOLUTION) {
+      case M:
+        s = "5 Min / Point";
+        break;
+      case H:
+        s = "1 Hour / Point";
+        break;
+      case D:
+        s = "1 Day / Point";
+        break;
+      default:
+        s = "5 Min / Point";
+    }
+    mvwprintw(g.second, maxy+2, maxx-(1+s.length()), s.c_str(), v[i].price);
+    wnoutrefresh(g.first);
+    wnoutrefresh(g.second);
   }
 
   void View::drawcoord(std::pair<WINDOW*, WINDOW*> g)
@@ -464,9 +495,9 @@ namespace cwo {
     box(g.first, 0, 0);
     wmove(g.second, 0, LOFFSETIG);
     wvline(g.second, ACS_VLINE, y-1);
-    wmove(g.second, y-1, LOFFSETIG);
+    wmove(g.second, y-2, LOFFSETIG);
     wvline(g.second, ACS_LLCORNER, 1);
-    wmove(g.second, y-1, LOFFSETIG+1);
+    wmove(g.second, y-2, LOFFSETIG+1);
     whline(g.second, ACS_HLINE, x-1);
   }
 
@@ -475,20 +506,33 @@ namespace cwo {
     std::vector<CRYPTOTYPE> v = _m->regcryptos();
     std::array<double, 2> minmax;
     int x,y;
-    wnoutrefresh(overviewwin);
-    doupdate();
     for (uint32_t i=0; i<v.size(); ++i) {
       drawcoord(_graphs[i]);
       getmaxyx(_graphs[i].second, y, x);
       std::vector<Statistic> s;
-      _m->selectdata(v[i], &s, x+4);
-      minmax = _m->minmax(v[i], x+4);
+      switch (DATARESOLUTION) {
+        case M:
+          _m->selectdatabymin(v[i], &s, x+4);
+            minmax = _m->minmaxmin(v[i], x+4);
+          break;
+        case H:
+          _m->selectdatabyhour(v[i], &s, x+4);
+          minmax = _m->minmaxhour(v[i], x+4);
+          break;
+        case D:
+          _m->selectdatabyday(v[i], &s, x+4);
+          minmax = _m->minmaxday(v[i], x+4);
+          break;
+        default:
+          _m->selectdatabymin(v[i], &s, x+4);
+          minmax = _m->minmaxmin(v[i], x+4);
+      }
       drawgraph(_graphs[i], s, minmax);
       std::array<std::string, 8> title = asciicrypto(v[i]);
       wattron(_graphs[i].second, COLOR_PAIR(1));
       for (uint8_t j=0; j<title.size(); ++j) {
         for (uint8_t k=0; k<title[j].size(); ++k) {
-          wmove(_graphs[i].second, y-9+j, LOFFSETIG+1+k);
+          wmove(_graphs[i].second, y-10+j, LOFFSETIG+1+k);
           if (title[j][k] != ' ')
             waddch(_graphs[i].second, title[j][k] | A_UNDERLINE);
         }
@@ -632,7 +676,7 @@ namespace cwo {
       return "/";
     } else if ((oldp >= curp && nexp >= curp)
         || (oldp <= curp && nexp <= curp)) {
-      return "-";
+      return "_";
     } else {
       return "*";
     }

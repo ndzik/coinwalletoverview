@@ -14,6 +14,11 @@ namespace cwo {
     EUR,
     USD
   };
+  enum DATARES {
+    M,
+    H,
+    D
+  };
   const std::map<CRYPTOTYPE, std::string> CRYPTO = {
     {ETH, "1027"},
     {VET, "3077"},

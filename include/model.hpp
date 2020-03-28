@@ -127,10 +127,22 @@ namespace cwo {
           char **azcolname);
 
       /*
-       * Selects range of values for cryptotype and inserts them into given
-       * vector
+       * Selects range of values for cryptotype each 5 minutes if available
+       * and inserts them into given vector
        */
-      void selectdata(CRYPTOTYPE t, std::vector<Statistic> *v, int limit=0);
+      void selectdatabymin(CRYPTOTYPE t, std::vector<Statistic> *v, int limit=0);
+
+      /*
+       * Select range of values for cryptotype for each available hour and
+       * insert them into a given vector
+       */
+      void selectdatabyhour(CRYPTOTYPE t, std::vector<Statistic> *v, int limit=0);
+
+      /*
+       * Select range of values for cryptotype for each available day and
+       * insert them into a given vector
+       */
+      void selectdatabyday(CRYPTOTYPE t, std::vector<Statistic> *v, int limit=0);
 
       /*
        * Get list of CRYPTOTYPES for registered wallets
@@ -138,9 +150,19 @@ namespace cwo {
       std::vector<CRYPTOTYPE> regcryptos();
 
       /*
-       * Get Min-Max for CRYPTOTYPE
+       * Get Min-Max for CRYPTOTYPE for min
        */
-      std::array<double, 2> minmax(CRYPTOTYPE t, int limit=0);
+      std::array<double, 2> minmaxmin(CRYPTOTYPE t, int limit=0);
+
+      /*
+       * Get Min-Max for CRYPTOTYPE for hour
+       */
+      std::array<double, 2> minmaxhour(CRYPTOTYPE t, int limit=0);
+
+      /*
+       * Get Min-Max for CRYPTOTYPE for day
+       */
+      std::array<double, 2> minmaxday(CRYPTOTYPE t, int limit=0);
 
       /*
        * Notify observers
