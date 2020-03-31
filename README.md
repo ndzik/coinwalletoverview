@@ -101,11 +101,11 @@ Working on it whenever there is time ;D
 
 ## Misc
 
-###Adaptive in size:
+**Adaptive in size:**
 
 ![cwov1eachownline](/uploads/3baf4114d59c07d3dee88b9b6f5f1707/cwov1eachownline.png)
 
-###Switch timeintervals:
+**Switch timeintervals:**
 
 ![cwov1graphsingle5min](/uploads/05efcadbca5f822526d41733c951adcc/cwov1graphsingle5min.png)
 ![cwov1graphsingle1hour](/uploads/dd56e5474cbf588322ed59bd5b973c92/cwov1graphsingle1hour.png)
