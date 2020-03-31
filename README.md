@@ -101,16 +101,17 @@ Working on it whenever there is time ;D
 
 ## Misc
 
-For now two more pictures in different sizes.
+###Adaptive in size:
 
-Adaptive in size:
 ![cwov1eachownline](/uploads/3baf4114d59c07d3dee88b9b6f5f1707/cwov1eachownline.png)
 
-Switch timeintervals:
+###Switch timeintervals:
+
 ![cwov1graphsingle5min](/uploads/05efcadbca5f822526d41733c951adcc/cwov1graphsingle5min.png)
 ![cwov1graphsingle1hour](/uploads/dd56e5474cbf588322ed59bd5b973c92/cwov1graphsingle1hour.png)
 ![cwov1graphsingle1day](/uploads/c179c42f748eb8e0edbc5450baa101e5/cwov1graphsingle1day.png)
 
 If enough datapoints are gathered and your display is wide enough, you can
 optionally switch of graph filling:
+
 ![cwov1graphunfilled](/uploads/aee835c4bb901ecad244365b6eca3a11/cwov1graphunfilled.png)
