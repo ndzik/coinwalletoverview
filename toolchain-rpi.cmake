@@ -39,6 +39,7 @@ set(LIB_DIRS
 	"${SYSROOT_PATH}/usr/lib/${TOOLCHAIN_HOST}/blas"
 	"${SYSROOT_PATH}/usr/lib/${TOOLCHAIN_HOST}/lapack"
 )
+
 # You can additionally check the linker paths if you add the flags ' -Xlinker --verbose'
 set(COMMON_FLAGS "-I${SYSROOT_PATH}/usr/include ")
 FOREACH(LIB ${LIB_DIRS})

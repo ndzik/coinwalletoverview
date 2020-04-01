@@ -57,7 +57,7 @@ namespace cwo {
        * Query coinmarketcap api for information and write result into
        * _data
        */
-      void update();
+      bool update();
     private:
       std::vector<CRYPTOTYPE> _cryptos;
       CURRENCY _currency;
