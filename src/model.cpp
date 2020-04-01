@@ -7,8 +7,7 @@
 namespace cwo {
   /********************************** CTORS **********************************/
   Model::Model()
-    : Observable(), _running(true), _blocked(false), _dbinterval(5),
-    _currency(USD)
+    : Observable(), _running(true), _dbinterval(5), _currency(USD)
   {
     ETHURL = "https://api.blockcypher.com/v1/eth/main/addrs/"
         "{}/"
@@ -36,7 +35,6 @@ namespace cwo {
     CMC cm(_apikey);
     int cnt = 0;
     while(_running) {
-
       /* Sleep as long as necessary (debug purpose so far because of MT) */
       if (cnt%6000 != 0) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -44,36 +42,17 @@ namespace cwo {
         continue;
       }
 
-      /*** CRITICAL AREA START ***/
-      std::unique_lock<std::mutex> lock(_mtx);
-      _cond.wait_for(lock, std::chrono::milliseconds(10),
-          [this](){ return !blocked(); });
-      _blocked = true;
       if (_wallets.empty()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
         continue;
       }
 
       /* Write new values for cryptos to DB */
-//      if (_dbupdateinterval%_dbinterval == 0)
-//        updatepricedata(&cm);
-
-      /* Check balance of each registered wallet */
-      std::vector<std::thread> futs;
-      auto it = _wallets.begin();
-      while (it != _wallets.end()) {
-        Wallet *w = it->second;
-        futs.push_back(std::thread([w](Wallet *wallet)
-                { wallet->update(); }, w));
-        ++it;
+      if (_dbupdateinterval%_dbinterval == 0) {
+        updatepricedata(&cm);
       }
-      for (auto &th : futs)
-        th.join();
 
-      lock.unlock();
-      _blocked = false;
-      _cond.notify_all();
-      /*** CRITICAL AREA END ***/
+      updatewallets();
 
       /* Notify observers if existent */
       notifyall();
@@ -86,21 +65,42 @@ namespace cwo {
     }
   }
 
+  void Model::updatewallets()
+  {
+    std::vector<std::thread> futs;
+    {
+      std::unique_lock lock(_mtx);
+      /* Check balance of each registered wallet */
+      auto it = _wallets.begin();
+      while (it != _wallets.end()) {
+        Wallet *w = it->second;
+        futs.push_back(std::thread([w](Wallet *wallet)
+                { wallet->update(); }, w));
+        ++it;
+      }
+    }
+    for (auto &th : futs)
+      th.join();
+  }
+
   void Model::updatepricedata(CMC *cm)
   {
     std::vector<CRYPTOTYPE> v = regcryptos();
     _dbupdateinterval = 0;
-    cm->crypto(v)->currency(_currency)->update();
-    for (auto &a : v)
-      insertpricedb(a, cm->price(a));
-    /* CRITICAL AREA START */
-    for (auto &w : _wallets) {
-      w.second->value(cm->price(w.first));
-      w.second->onehourchange(cm->onehourchange(w.first));
-      w.second->onedaychange(cm->onedaychange(w.first));
-      w.second->oneweekchange(cm->oneweekchange(w.first));
-    }
-    /* CRITICAL AREA END */
+
+    { /* CRITICAL AREA START */
+      std::unique_lock lock(_mtx);
+      if (cm->crypto(v)->currency(_currency)->update()) {
+        for (auto &a : v)
+          insertpricedb(a, cm->price(a));
+        for (auto &w : _wallets) {
+          w.second->value(cm->price(w.first));
+          w.second->onehourchange(cm->onehourchange(w.first));
+          w.second->onedaychange(cm->onedaychange(w.first));
+          w.second->oneweekchange(cm->oneweekchange(w.first));
+        }
+      }
+    } /* CRITICAL AREA END */
   }
 
   void Model::apikey(const std::string &s)
@@ -111,11 +111,6 @@ namespace cwo {
   void Model::stop()
   {
     _running = false;
-  }
-
-  bool Model::blocked()
-  {
-    return _blocked;
   }
 
   void Model::updateinterval(int mins)
@@ -133,72 +128,59 @@ namespace cwo {
     std::string wurl = getwalleturl(t);
     Walletfactory wf;
     wurl = createwalleturl(wurl, address);
-    /*** CRITICAL AREA START ***/
-    std::unique_lock<std::mutex> lock(_mtx);
-    _cond.wait_for(lock, std::chrono::milliseconds(10),
-        [this](){ return !blocked(); });
-    _blocked = true;
-    _wallets.insert(std::pair<CRYPTOTYPE, Wallet*>(t,
-          wf.address(address).cryptotype(t).url(wurl).build()));
-    lock.unlock();
-    _blocked = false;
-    _cond.notify_all();
-    /*** CRITICAL AREA END ***/
+    { /*** CRITICAL AREA START ***/
+      std::unique_lock lock(_mtx);
+      _wallets.insert(std::pair<CRYPTOTYPE, Wallet*>(t,
+            wf.address(address).cryptotype(t).url(wurl).build()));
+    } /*** CRITICAL AREA END ***/
   }
 
   void Model::unregisterwallet(CRYPTOTYPE t, std::string address)
   {
-    /*** CRITICAL AREA START ***/
-    std::unique_lock<std::mutex> lock(_mtx);
-    _cond.wait_for(lock, std::chrono::milliseconds(10),
-        [this](){ return !blocked(); });
-    _blocked = true;
-    auto it = _wallets.find(t);
-    while (it != _wallets.end()) {
-      if (it->second->address() == address) {
-        _wallets.erase(it);
-        return;
+    { /*** CRITICAL AREA START ***/
+      std::unique_lock lock(_mtx);
+      auto it = _wallets.find(t);
+      while (it != _wallets.end()) {
+        if (it->second->address() == address) {
+          _wallets.erase(it);
+          return;
+        }
+        ++it;
       }
-      ++it;
-    }
-    lock.unlock();
-    _blocked = false;
-    _cond.notify_all();
-    /*** CRITICAL AREA END ***/
+    } /*** CRITICAL AREA END ***/
   }
 
   double Model::walletbalance(CRYPTOTYPE t, std::string address)
   {
-    /*** CRITICAL AREA START ***/
-    std::unique_lock<std::mutex> lock(_mtx);
-    _cond.wait_for(lock, std::chrono::milliseconds(10),
-        [this] () { return !blocked(); });
-    auto it = _wallets.find(t);
-    while (it != _wallets.end()) {
-      if (it->second->address() == address) return it->second->balance();
-      ++it;
-    }
-    lock.unlock();
-    _cond.notify_all();
-    /*** CRITICAL AREA END ***/
+    { /*** CRITICAL AREA START ***/
+      std::shared_lock lock(_mtx);
+      auto it = _wallets.find(t);
+      while (it != _wallets.end()) {
+        if (it->second->address() == address) return it->second->balance();
+        ++it;
+      }
+    } /*** CRITICAL AREA END ***/
     return 0;
   }
 
   std::multimap<CRYPTOTYPE, Wallet*> Model::walletmap()
   {
-    /*** CRITICAL AREA START ***/
-    std::multimap<CRYPTOTYPE, Wallet*> w = _wallets;
-    /*** CRITICAL AREA END ***/
+    std::multimap<CRYPTOTYPE, Wallet*> w;
+    { /*** CRITICAL AREA START ***/
+      std::shared_lock lock(_mtx);
+      w = _wallets;
+    } /*** CRITICAL AREA END ***/
     return w;
   }
 
   std::vector<Wallet*> Model::wallets()
   {
     std::vector<Wallet*> w;
-    /*** CRITICAL AREA START ***/
-    for (auto it = _wallets.begin(); it != _wallets.end(); ++it)
-      w.push_back(it->second);
-    /*** CRITICAL AREA END ***/
+    { /*** CRITICAL AREA START ***/
+      std::shared_lock lock(_mtx);
+      for (auto it = _wallets.begin(); it != _wallets.end(); ++it)
+        w.push_back(it->second);
+    } /*** CRITICAL AREA END ***/
     return w;
   }
 
@@ -206,16 +188,12 @@ namespace cwo {
   {
     typedef std::multimap<CRYPTOTYPE, Wallet*>::iterator mip;
     std::vector<Wallet*> w;
-    /*** CRITICAL AREA START ***/
-    std::unique_lock<std::mutex> lock(_mtx);
-    _cond.wait_for(lock, std::chrono::milliseconds(10),
-        [this](){ return !blocked(); });
-    std::pair<mip, mip> ret = _wallets.equal_range(t);
-    for (mip it = ret.first; it != ret.second; ++it)
-      w.push_back(it->second);
-    lock.unlock();
-    _cond.notify_all();
-    /*** CRITICAL AREA END ***/
+    { /*** CRITICAL AREA START ***/
+      std::shared_lock lock(_mtx);
+      std::pair<mip, mip> ret = _wallets.equal_range(t);
+      for (mip it = ret.first; it != ret.second; ++it)
+        w.push_back(it->second);
+    } /*** CRITICAL AREA END ***/
     return w;
   }
 
@@ -360,7 +338,7 @@ namespace cwo {
     double max = 0;
     sql << "SELECT MIN(DATA_PRICE) FROM ("
       << "SELECT STRFTIME('%Y-%m-%d %H:00:00.000', DATA_TD) AS ACCDT,"
-      << " DATA_PRICE"
+      << " AVG(DATA_PRICE) AS DATA_PRICE"
       << " FROM " << DBNAME.at(t)
       << " GROUP BY ACCDT"
       << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
@@ -373,7 +351,7 @@ namespace cwo {
     sql.str(std::string());
     sql << "SELECT MAX(DATA_PRICE) FROM ("
       << "SELECT STRFTIME('%Y-%m-%d %H:00:00.000', DATA_TD) AS ACCDT,"
-      << " DATA_PRICE"
+      << " AVG(DATA_PRICE) AS DATA_PRICE"
       << " FROM " << DBNAME.at(t)
       << " GROUP BY ACCDT"
       << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
@@ -394,7 +372,7 @@ namespace cwo {
     double max = 0;
     sql << "SELECT MIN(DATA_PRICE) FROM ("
       << "SELECT STRFTIME('%Y-%m-%d 00:00:00.000', DATA_TD) AS ACCDT,"
-      << " DATA_PRICE"
+      << " AVG(DATA_PRICE) AS DATA_PRICE"
       << " FROM " << DBNAME.at(t)
       << " GROUP BY ACCDT"
       << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
@@ -407,7 +385,7 @@ namespace cwo {
     sql.str(std::string());
     sql << "SELECT MAX(DATA_PRICE) FROM ("
       << "SELECT STRFTIME('%Y-%m-%d 00:00:00.000', DATA_TD) AS ACCDT,"
-      << " DATA_PRICE"
+      << " AVG(DATA_PRICE) AS DATA_PRICE"
       << " FROM " << DBNAME.at(t)
       << " GROUP BY ACCDT"
       << " ORDER BY ACCDT DESC LIMIT " << limit  << ");";
@@ -425,10 +403,9 @@ namespace cwo {
     std::vector<CRYPTOTYPE> v;
     for (int i=ETH; i<LASTCRYPTO; ++i) {
       CRYPTOTYPE t = static_cast<CRYPTOTYPE>(i);
-      /*** CRITICAL AREA START ***/
+      /* concurrent access on specific elements are supposed to be safe */
       if (_wallets.find(t) != _wallets.end())
         v.push_back(t);
-      /*** CRITICAL AREA END ***/
     }
     return v;
   }

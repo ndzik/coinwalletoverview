@@ -33,7 +33,7 @@ namespace cwo {
     return result;
   }
 
-  void CMC::update()
+  bool CMC::update()
   {
     CURL *c;
     CURLcode r;
@@ -60,15 +60,15 @@ namespace cwo {
       curl_easy_setopt(c, CURLOPT_HTTPHEADER, hlist);
       curl_easy_setopt(c, CURLOPT_FAILONERROR, 1);
     } else {
-      return;
+      return false;
     }
     r = curl_easy_perform(c);
     curl_easy_cleanup(c);
     curl_global_cleanup();
     if (r != CURLE_OK)
-      return;
+      return false;
     _data = nlohmann::json::parse(b);
-    return;
+    return true;
   }
 
   double CMC::price(CRYPTOTYPE t)

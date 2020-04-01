@@ -1,6 +1,7 @@
 #ifndef INCLUDE_UTILITY_HPP
 #define INCLUDE_UTILITY_HPP
 #include <map>
+
 #define DBNAME(x) x "DATA"
 
 namespace cwo {
@@ -19,10 +20,19 @@ namespace cwo {
     H,
     D
   };
+  enum ALIGNMENT {
+    VERTICAL,
+    HORIZONTAL
+  };
   const std::map<CRYPTOTYPE, std::string> CRYPTO = {
     {ETH, "1027"},
     {VET, "3077"},
     {BTC, "1"}
+  };
+  const std::map<CRYPTOTYPE, std::string> URL = {
+    {ETH, "https://api.blockcypher.com/v1/eth/main/addrs/{}/balance?token="},
+    {VET, "https://explore.vechain.org/accounts/{}"},
+    {BTC, "https://blockchain.info/q/addressbalance/{}"}
   };
   const std::map<CURRENCY, std::string> CTOS = {
     {EUR, "EUR"},

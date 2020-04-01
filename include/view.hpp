@@ -67,7 +67,7 @@ namespace cwo {
     private:
       int _basex, _basey, _ux, _uy;
       Model *_m;
-      WINDOW *overviewwin, *coinviewwin;
+      WINDOW *overviewwin, *coinviewwin, *debugwin;
       int _state;
       bool _wait;
       bool _running;
@@ -80,7 +80,7 @@ namespace cwo {
       int MINGRAPHWIDTH = 50;
       int LOFFSETIG = 8;
       int BOFFESTIG = 0;
-      int GRAPHEXPANSION = 1;
+      ALIGNMENT GRAPHEXPANSION = HORIZONTAL;
       bool FILL = true;
       DATARES DATARESOLUTION = M;
       const char* GRAPH_SYMBOL = "*";
@@ -172,6 +172,11 @@ namespace cwo {
        * Auxiliary function to decide on which currency symbol to use
        */
       const char* currencysymbol(CURRENCY c);
+
+      /*
+       * Auxiliary function for debugwin
+       */
+      void debugmessage(const char *);
 
   }; // class View
 }; // namespace cwo

@@ -10,6 +10,5 @@ int main()
 {
   View v;
   v.run();
-
   return 0;
 }

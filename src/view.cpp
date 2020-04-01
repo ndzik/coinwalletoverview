@@ -71,6 +71,7 @@ namespace cwo {
     /* create windows */
     overviewwin = newwin((_uy*0.2), _ux, _uy-(_uy*0.2), 0);
     coinviewwin = newwin((_uy*0.8), _ux, 0, 0);
+//    debugwin = newwin(3, 30, _uy-(_uy*0.2)-4, _ux*0.8+1);
 
     /* draw box around coinviewwindow */
     box(coinviewwin, 0, 0);
@@ -79,6 +80,10 @@ namespace cwo {
     /* draw box around walletoverview */
     box(overviewwin, 0, 0);
     wnoutrefresh(overviewwin);
+
+    /* draw box around debugwin */
+//    box(debugwin, 0, 0);
+//    wnoutrefresh(debugwin);
 
 
     creategraphs();
@@ -100,11 +105,11 @@ namespace cwo {
           _running = false;
           break;
         case 'v' :
-          GRAPHEXPANSION = 0;
+          GRAPHEXPANSION = VERTICAL;
           _szchanged = true;
           break;
         case 'h' :
-          GRAPHEXPANSION = 1;
+          GRAPHEXPANSION = HORIZONTAL;
           _szchanged = true;
           break;
         case 'f':
@@ -146,6 +151,7 @@ namespace cwo {
 
     delwin(overviewwin);
     delwin(coinviewwin);
+//    delwin(debugwin);
     endwin();
   }
 
@@ -177,13 +183,16 @@ namespace cwo {
       }
       /* draw graphs */
       displaygraphinfo();
+      //debugmessage("entering drawmetainfo");
       drawmetainfo();
       wnoutrefresh(coinviewwin);
 
       /* draw wallet information */
       int x, y;
       getmaxyx(overviewwin, y, x);
+      //debugmessage("entering displaywalletinfo");
       displaywalletinfo(overviewwin, y-1, x);
+      //debugmessage("done loop");
       wnoutrefresh(overviewwin);
 
       /* draw updated content to screen */
@@ -193,12 +202,12 @@ namespace cwo {
 
   void View::hgraphexpansion()
   {
-    GRAPHEXPANSION = 0;
+    GRAPHEXPANSION = HORIZONTAL;
   }
 
   void View::vgraphexpansion()
   {
-    GRAPHEXPANSION = 1;
+    GRAPHEXPANSION = VERTICAL;
   }
 
   /************************ PRIVATE ******************************************/
@@ -271,9 +280,11 @@ namespace cwo {
     int locy,locx,py,px,begy,begx;
     getmaxyx(coinviewwin, py, px);
     px = px*0.8;
+    py = py-2; // substract win border top and bottom
     std::vector<uint8_t> bitmask(_graphs.size());
     int gpl = setbitmask(&bitmask, py, px);
-    int hratio = py/(bitmask.size()/gpl);
+    int hratio =  py/(bitmask.size()/gpl);
+
     int wratio = px/gpl;
     int houtergraph, woutergraph;
 
@@ -306,38 +317,22 @@ namespace cwo {
       uint32_t ln, int32_t j, int &y, int &x)
   {
     uint64_t maxln = bitmask->size()/gpl;
-    /* if graph is below another graph, or each graph has its own line */
-    if (ln == 0 || (j == 0 && maxln == _graphs.size()))
-      y = 1+ln*hratio;
-    else
-      y = ln*hratio;
-    x = 1+j*wratio;
+    y = 1+ln*hratio; // offset each line by 1 because of winborder
+    x = 1+j*wratio; // offset each col by 1 because of winborder
+    houtergraph = hratio;
+    woutergraph = wratio;
     /* ...if 0 in bitmask then no window is to be created... */
     if (bitmask->at(ln*gpl+j) == 0) return false;
     /* ...else create two new windows... */
-    if (GRAPHEXPANSION == 0) { /* horizontal expansion */
-      if (maxln == 1) /* if only a single line exists */
-        houtergraph = hratio-2;
-      else if (maxln == _graphs.size()) /* each graph own line */
-        houtergraph = hratio;
-      else
-        houtergraph = hratio-1;
-      woutergraph = wratio;
+    if (GRAPHEXPANSION == HORIZONTAL) { /* horizontal expansion */
       if ((j<gpl-1) && (bitmask->at(ln*gpl+j+1) != 1)) {
         for (int k=j; k<gpl-1; ++k) {
           woutergraph += wratio;
         }
       }
     } else { /* vertical expansion */
-      if (maxln == 1) /* if only a single line exists */
-        houtergraph = hratio-2;
-      else if (maxln == _graphs.size()) /* each graph own line */
-        houtergraph = hratio;
-      else
-        houtergraph = hratio-1;
-      woutergraph = wratio;
       if ((ln<(maxln-1) && (bitmask->at((ln+1)*gpl+j) != 1))) {
-        houtergraph += hratio-1;
+        houtergraph += hratio;
       }
     }
     return true;
@@ -347,7 +342,9 @@ namespace cwo {
   {
     /* Prevent crash due to (idx%h==0) leading to FPE */
     if (h<=0) return;
+////    debugmessage("getting wallets");
     auto wallet = _m->wallets();
+////    debugmessage("got wallets");
     uint32_t numofwallets = wallet.size();
     uint32_t numofrows = numofwallets/h + 1;
     uint32_t widthofrow = w/numofrows;
@@ -404,9 +401,9 @@ namespace cwo {
     std::vector<uint8_t> bitmask(v.size());
     int gpl = setbitmask(&bitmask, py, px);
 
-    /* Create graphs with according dimensions according to bitmask
-     * If a 1 has a 0 beneath it, the window is supposed to be extended
-     * to fit the rest of the column */
+    /* Create graphs with appropriate dimensions according to bitmask
+     * If a 1 has a 0 beneath/next to it, the window is supposed to be extended
+     * to fit the rest of the column/line */
     int hratio = py/(bitmask.size()/gpl);
     int wratio = px/gpl;
     int houtergraph, woutergraph;
@@ -452,6 +449,7 @@ namespace cwo {
   {
     drawcoord(std::make_pair(g.first, g.second));
     double maxx, maxy, cnt=0;
+    double diff = range[1] - range[0];
     uint64_t i = v.size()-1;
     getmaxyx(g.second, maxy, maxx);
     maxy = maxy-3;
@@ -461,7 +459,7 @@ namespace cwo {
     mvwprintw(g.second, 0, 0, strformat, range[1]);
     mvwprintw(g.second, maxy, 0, strformat, range[0]);
     for (int x=maxx; x>LOFFSETIG && i>=0 && cnt<v.size(); ++cnt, --x, --i) {
-      int y = (double)maxy*(v[i].price-range[0])/(range[1]-range[0]);
+      int y = maxy*(v[i].price-range[0])/diff;
       y = maxy-y; /* invert axis */
       if (i!=0 && i!=v.size()-1) {
         GRAPH_SYMBOL = choosegraphsymbol(v[i-1].price,
@@ -520,6 +518,7 @@ namespace cwo {
       drawcoord(_graphs[i]);
       getmaxyx(_graphs[i].second, y, x);
       std::vector<Statistic> s;
+      //debugmessage("entering selectdatabyX");
       switch (DATARESOLUTION) {
         case M:
           _m->selectdatabymin(v[i], &s, x+4);
@@ -537,6 +536,7 @@ namespace cwo {
           _m->selectdatabymin(v[i], &s, x+4);
           minmax = _m->minmaxmin(v[i], x+4);
       }
+      //debugmessage("entering drawgraph");
       drawgraph(_graphs[i], s, minmax);
       std::array<std::string, 8> title = asciicrypto(v[i]);
       wattron(_graphs[i].second, COLOR_PAIR(1));
@@ -584,14 +584,16 @@ namespace cwo {
 
   void View::drawmetainfo()
   {
-    int x, col, height;
+    int x, y, col, height;
     double change;
     bool newline;
     const char* currencysym;
     CURRENCY currency;
     std::vector<CRYPTOTYPE> c = _m->regcryptos();
+////    debugmessage("getting walletmap");
     std::multimap<CRYPTOTYPE, Wallet*> w = _m->walletmap();
-    x = getmaxx(coinviewwin);
+////    debugmessage("got walletmap");
+    getmaxyx(coinviewwin, y, x);
     wmove(coinviewwin, 1, x*0.8+1);
     whline(coinviewwin, ACS_HLINE, x-x*0.8-2);
     /* decide if a newline is needed to print information */
@@ -662,6 +664,13 @@ namespace cwo {
       wmove(coinviewwin, height+1+i*height, x*0.8+1);
       whline(coinviewwin, ACS_HLINE, x-x*0.8-2);
     }
+    /* Print last time updated stamp */
+    auto time = std::chrono::system_clock::now();
+    auto real_time = std::chrono::system_clock::to_time_t(time);
+    wattron(coinviewwin, A_BOLD);
+    mvwprintw(coinviewwin, y-3, x*0.8+1, "Last Update:");
+    mvwprintw(coinviewwin, y-2, x*0.8+1, std::ctime(&real_time));
+    wattroff(coinviewwin, A_BOLD);
   }
 
   const char* View::currencysymbol(CURRENCY c)
@@ -690,6 +699,14 @@ namespace cwo {
     } else {
       return "*";
     }
+  }
+
+  void View::debugmessage(const char *msg)
+  {
+    wclear(debugwin);
+    box(debugwin, 0, 0);
+    mvwprintw(debugwin, 1, 1, msg);
+    wrefresh(debugwin);
   }
 
 }; // namespace cwo

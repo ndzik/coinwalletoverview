@@ -71,11 +71,6 @@ namespace cwo {
       void stop();
 
       /*
-       * Is map currently being written to?
-       */
-      bool blocked();
-
-      /*
        * Set updateinterval in mins
        */
       void updateinterval(int mins);
@@ -170,15 +165,13 @@ namespace cwo {
 
     private:
       std::atomic<bool> _running;
-      bool _blocked;
       int _dbinterval, _dbupdateinterval;
       std::string ETHURL;
       std::string VETURL;
       std::string BTCURL;
       std::string _apikey;
       std::string _token;
-      std::mutex _mtx;
-      std::condition_variable _cond;
+      std::shared_mutex _mtx;
       std::multimap<CRYPTOTYPE, Wallet*> _wallets;  /* ETH - 0xdeadbeef */
       std::map<CRYPTOTYPE, double> _investment; /* ETH - 5 */
       CURRENCY _currency; /* USD */
@@ -206,6 +199,11 @@ namespace cwo {
        * Update db values for registered cryptotypes
        */
       void updatepricedata(CMC *cm);
+
+      /*
+       * Update registered wallets
+       */
+      void updatewallets();
 
   }; // class Model
 }; // namespace cwo
