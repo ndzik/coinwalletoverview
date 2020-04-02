@@ -448,6 +448,11 @@ namespace cwo {
       const std::vector<Statistic> &v, const std::array<double, 2> range)
   {
     drawcoord(std::make_pair(g.first, g.second));
+    if (v.size() == 0) {
+      wnoutrefresh(g.first);
+      wnoutrefresh(g.second);
+      return;
+    }
     double maxx, maxy, cnt=0;
     double diff = range[1] - range[0];
     uint64_t i = v.size()-1;

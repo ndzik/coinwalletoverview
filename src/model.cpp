@@ -233,12 +233,14 @@ namespace cwo {
     double *v = static_cast<double*>(dnum);
     /*
      * If database is empty and no min/max value could be retrieved, argc still
-     * returns 1 while argv is unmapped? -> leading to a seg-fault
+     * is 1 and argv[0] == 0x0.
      */
-    if (argc > 0)
-      *v = atof(argv[0]);
-    else
+    if (argc > 0) {
+      const char* c = argv[0];
+      *v = ( c != 0 ) ? atof(c) : 0;
+    } else {
       *v = 0;
+    }
     return 0;
   }
 
