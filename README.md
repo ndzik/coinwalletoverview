@@ -93,6 +93,7 @@ Each registered wallet will be updated in a frequency of 1 min.
 * Upcoming features:
     * Custom graph.db location via configuration-file
     * More Cryptotypes...
+    * *MIGRATING TO COINGECKO API*
 
 * General:
     * Better cross-compile guide with every resource necessary
