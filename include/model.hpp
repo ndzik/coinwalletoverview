@@ -8,6 +8,7 @@
 #include <sqlite3.h>
 #include <filesystem>
 #include <mutex>
+#include <shared_mutex>
 #include <condition_variable>
 #include <list>
 #include <atomic>
