@@ -373,7 +373,7 @@ namespace cwo {
       /* Print estimated value of wallet in specified currency */
       mvwprintw(win, ypos, row*widthofrow+1+3+55, " est. value: ");
       wattron(win, A_BOLD);
-      mvwprintw(win, ypos, row*widthofrow+1+3+54+13, "%6.2f %s",
+      mvwprintw(win, ypos, row*widthofrow+1+3+54+14, "%6.2f %s",
           wallet[idx-1]->balance()*wallet[idx-1]->value(),
           currencysymbol(wallet[idx-1]->currency())
           );
