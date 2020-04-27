@@ -19,6 +19,7 @@
 #include "json.hpp"
 #include "utility.hpp"
 #include "coinmarketcap.hpp"
+#include "coingecko.hpp"
 #include "walletfactory.hpp"
 #include "observable.hpp"
 
@@ -199,7 +200,7 @@ namespace cwo {
       /*
        * Update db values for registered cryptotypes
        */
-      void updatepricedata(CMC *cm);
+      void updatepricedata(API *api);
 
       /*
        * Update registered wallets

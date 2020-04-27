@@ -12,9 +12,9 @@ BOOST_AUTO_TEST_CASE(ctors)
 BOOST_AUTO_TEST_CASE(GetPriceForCryptoInCurrency)
 {
 //  CMC m("<api-key>");
-  std::vector<CRYPTOTYPE> t = {ETH, VET, BTC};
-  m.crypto(t)->currency(EUR)->update();
-  std::cout << m.price(ETH) << std::endl;
-  std::cout << m.price(VET) << std::endl;
-  std::cout << m.price(BTC) << std::endl;
+//  std::vector<CRYPTOTYPE> t = {ETH, VET, BTC};
+//  m.crypto(t)->currency(EUR)->update();
+//  std::cout << m.price(ETH) << std::endl;
+//  std::cout << m.price(VET) << std::endl;
+//  std::cout << m.price(BTC) << std::endl;
 }
