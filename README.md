@@ -20,14 +20,15 @@ It also updates the estimated value for your coins in a currency of your choice.
   * **Curl**
   * **SQLite3**
   * **https://github.com/nlohmann/json**
-  * **CoinMarketCap-API**
+  * (deprecated) **CoinMarketCap-API**
+  * Now powered by **Coingecko-API** (awesome service)
   * **Blockchaininfo-API**
 
 ## Supported Cryptos (for now and to be extended on request)
 * **Bitcoin** Mother of Cryptos
 * **Ethereum**
 * **VeChain**
-* more to come...
+* more to come on demand...
  
 ## Build & Install
 ```
@@ -64,7 +65,7 @@ placed in '$HOME/.config/cwo/state.json'. Example template:
 
   ],
   "apikeys" : {
-    "coinbase" : "your coinbase api-key"
+    "coinbase" : "your optional coinbase api-key, not necessary atm"
   },
   "blockcypher" : {
     "token" : "your blockcypher api-key/token"
