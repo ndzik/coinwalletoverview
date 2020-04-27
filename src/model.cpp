@@ -32,7 +32,7 @@ namespace cwo {
   /********************************* PUBLIC **********************************/
   void Model::run()
   {
-    CMC cm(_apikey);
+    CoinGecko cg;
     int cnt = 0;
     while(_running) {
       /* Sleep as long as necessary (debug purpose so far because of MT) */
@@ -49,7 +49,7 @@ namespace cwo {
 
       /* Write new values for cryptos to DB */
       if (_dbupdateinterval%_dbinterval == 0) {
-        updatepricedata(&cm);
+        updatepricedata(&cg);
       }
 
       updatewallets();
@@ -83,21 +83,21 @@ namespace cwo {
       th.join();
   }
 
-  void Model::updatepricedata(CMC *cm)
+  void Model::updatepricedata(API *api)
   {
     std::vector<CRYPTOTYPE> v = regcryptos();
     _dbupdateinterval = 0;
 
     { /* CRITICAL AREA START */
       std::unique_lock lock(_mtx);
-      if (cm->crypto(v)->currency(_currency)->update()) {
+      if (api->crypto(v)->currency(_currency)->update()) {
         for (auto &a : v)
-          insertpricedb(a, cm->price(a));
+          insertpricedb(a, api->price(a));
         for (auto &w : _wallets) {
-          w.second->value(cm->price(w.first));
-          w.second->onehourchange(cm->onehourchange(w.first));
-          w.second->onedaychange(cm->onedaychange(w.first));
-          w.second->oneweekchange(cm->oneweekchange(w.first));
+          w.second->value(api->price(w.first));
+          w.second->onehourchange(api->onehourchange(w.first));
+          w.second->onedaychange(api->onedaychange(w.first));
+          w.second->oneweekchange(api->oneweekchange(w.first));
         }
       }
     } /* CRITICAL AREA END */
