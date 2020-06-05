@@ -79,6 +79,8 @@ placed in '$HOME/.config/cwo/state.json'. Example template:
 
 ```
 **Why do I have to provide my own API-Keys?**
+**Now supporting Coingecko-API!**
+
 Especially coinbase is very restrictive with their free api version. They
 restrict you to ~300 API-Calls/Day. This is also the reason the maximum
 frequency of api-queries for Coinbase is every 5 minutes.
