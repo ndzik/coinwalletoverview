@@ -2,7 +2,7 @@
 
 ## Overview
 
-![cwov1](/uploads/f2e3ae94697909e09ed79da33ea41b40/cwov1.png)
+![cwo1](/uploads/cd7ae033b0d4e302c435f944ff0bba82/cwo1censored.png)
 
 CoinWalletOverview (CWO) is a program which runs in a command-line. It displays
 graphs of price histories for selected cryptocurrencies tied to registered
@@ -31,7 +31,7 @@ It also updates the estimated value for your coins in a currency of your choice.
  
 ## Build & Install
 ```
-    git clone https://gitlab.com/nackterzeus/coinwalletoverview
+    git clone https://gitlab.com/nkdzeus/coinwalletoverview
     cd coinwalletoverview
 ```
 For your default System do:
@@ -105,7 +105,7 @@ Working on it whenever there is time ;D
 
 **Adaptive in size:**
 
-![cwov1eachownline](/uploads/3baf4114d59c07d3dee88b9b6f5f1707/cwov1eachownline.png)
+![cwoeachownline](/uploads/f29439c21465591a5c6893634fe7f7b6/cwoeachownlinecensored.png)
 
 **Switch timeintervals:**
 
