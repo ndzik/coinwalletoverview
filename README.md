@@ -2,7 +2,7 @@
 
 ## Overview
 
-![cwo1](/uploads/cd7ae033b0d4e302c435f944ff0bba82/cwo1censored.png)
+![cwov1](https://user-images.githubusercontent.com/33512740/97795084-4cdd0e80-1c02-11eb-8c3e-8e61b9541003.png)
 
 CoinWalletOverview (CWO) is a program which runs in a command-line. It displays
 graphs of price histories for selected cryptocurrencies tied to registered
@@ -105,15 +105,15 @@ Working on it whenever there is time ;D
 
 **Adaptive in size:**
 
-![cwoeachownline](/uploads/f29439c21465591a5c6893634fe7f7b6/cwoeachownlinecensored.png)
+![cwov1eachownline](https://user-images.githubusercontent.com/33512740/97795087-4e0e3b80-1c02-11eb-84ff-933c1eaa2559.png)
 
 **Switch timeintervals:**
 
-![cwov1graphsingle5min](/uploads/05efcadbca5f822526d41733c951adcc/cwov1graphsingle5min.png)
-![cwov1graphsingle1hour](/uploads/dd56e5474cbf588322ed59bd5b973c92/cwov1graphsingle1hour.png)
-![cwov1graphsingle1day](/uploads/c179c42f748eb8e0edbc5450baa101e5/cwov1graphsingle1day.png)
+![cwov1graphsingle5min](https://user-images.githubusercontent.com/33512740/97795092-4fd7ff00-1c02-11eb-8b55-8fa74b073d89.png)
+![cwov1graphsingle1hour](https://user-images.githubusercontent.com/33512740/97795091-4f3f6880-1c02-11eb-92c0-22a036157ab7.png)
+![cwov1graphsingle1day](https://user-images.githubusercontent.com/33512740/97795090-4ea6d200-1c02-11eb-8557-ca9ae3896c0e.png)
 
 If enough datapoints are gathered and your display is wide enough, you can
 optionally switch of graph filling:
 
-![cwov1graphunfilled](/uploads/aee835c4bb901ecad244365b6eca3a11/cwov1graphunfilled.png)
+![cwov1graphunfilled](https://user-images.githubusercontent.com/33512740/97795093-4fd7ff00-1c02-11eb-9a9e-f3d85733a237.png)
