@@ -20,7 +20,6 @@ It also updates the estimated value for your coins in a currency of your choice.
   * **Curl**
   * **SQLite3**
   * **https://github.com/nlohmann/json**
-  * (deprecated) **CoinMarketCap-API**
   * Now powered by **Coingecko-API** (awesome service)
   * **Blockchaininfo-API**
 
@@ -64,9 +63,6 @@ placed in '$HOME/.config/cwo/state.json'. Example template:
     {"crypto" : "BTC", "address" : "<your-addr>"}
 
   ],
-  "apikeys" : {
-    "coinbase" : "your optional coinbase api-key, not necessary atm"
-  },
   "blockcypher" : {
     "token" : "your blockcypher api-key/token"
   },
@@ -79,13 +75,7 @@ placed in '$HOME/.config/cwo/state.json'. Example template:
 }
 
 ```
-**Why do I have to provide my own API-Keys?**
-Especially coinbase is very restrictive with their free api version. They
-restrict you to ~300 API-Calls/Day. This is also the reason the maximum
-frequency of api-queries for Coinbase is every 5 minutes.
-
-CWO is meant to be used on a Raspberry Pi. CWO can obvioulsy also be used on a
-desktop machine.
+CWO is meant to be used on a Raspberry Pi but is not limited to that.
 When being run, CWO will create a database in '$HOME/.config/cwo/graph.db'.
 Each registered wallet will be updated in a frequency of 1 min.
 
@@ -94,7 +84,6 @@ Each registered wallet will be updated in a frequency of 1 min.
 * Upcoming features:
     * Custom graph.db location via configuration-file
     * More Cryptotypes...
-    * *MIGRATING TO COINGECKO API*
 
 * General:
     * Better cross-compile guide with every resource necessary
