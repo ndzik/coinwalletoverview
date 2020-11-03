@@ -39,7 +39,6 @@ namespace cwo {
         Model *m = new Model();
         m->addobs(v);
         v->registermodel(m);
-        m->apikey(_jdata["apikeys"]["coinbase"]);
         m->token(_jdata["blockcypher"]["token"]);
         for (auto c : _jdata["wallets"])
         m->registerwallet(STOC.at(c["crypto"]), c["address"]);
