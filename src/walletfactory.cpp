@@ -34,6 +34,10 @@ namespace cwo {
         return new BitcoinWallet(_address, _url);
         reset();
         break;
+      case CKB:
+        return new NervosWallet(_address, _url);
+        reset();
+        break;
       default:
         reset();
         return NULL;

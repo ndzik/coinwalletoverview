@@ -10,6 +10,7 @@ namespace cwo {
     ETH,
     VET,
     BTC,
+    CKB,
     LASTCRYPTO
   };
   enum CURRENCY {
@@ -25,37 +26,42 @@ namespace cwo {
     VERTICAL,
     HORIZONTAL
   };
-  /* this can be done smarter with a single map mapping things to api related
-   * structs. at least for most of the stuff here...
+  /* This can be done smarter with a single map mapping things to api related
+   * structs. At least for most of the stuff here...
    */
   const std::map<CRYPTOTYPE, std::string> CRYPTOG = {
     {ETH, "ethereum"},
     {VET, "vechain"},
     {BTC, "bitcoin"},
-  };
-  const std::map<CRYPTOTYPE, std::string> URL = {
-    {ETH, "https://api.blockcypher.com/v1/eth/main/addrs/{}/balance?token="},
-    {VET, "https://explore.vechain.org/accounts/{}"},
-    {BTC, "https://blockchain.info/q/addressbalance/{}"}
-  };
-  const std::map<CURRENCY, std::string> CTOS = {
-    {EUR, "EUR"},
-    {USD, "USD"}
-  };
-  const std::map<std::string, CRYPTOTYPE> STOC = {
-    {"ETH", ETH},
-    {"VET", VET},
-    {"BTC", BTC}
+    {CKB, "nervos-network"},
   };
   const std::map<CRYPTOTYPE, std::string> CRTOS = {
     {ETH, "ETH"},
     {BTC, "BTC"},
-    {VET, "VET"}
+    {VET, "VET"},
+    {CKB, "CKB"},
   };
   const std::map<CRYPTOTYPE, std::string> DBNAME = {
     {ETH, "ETHDATA"},
     {VET, "VETDATA"},
-    {BTC, "BTCDATA"}
+    {BTC, "BTCDATA"},
+    {CKB, "CKBDATA"},
+  };
+  const std::map<CRYPTOTYPE, std::string> URL = {
+    {ETH, "https://api.blockcypher.com/v1/eth/main/addrs/{}/balance?token="},
+    {VET, "https://explore.vechain.org/accounts/{}"},
+    {BTC, "https://blockchain.info/q/addressbalance/{}"},
+    {CKB, "localhost"},
+  };
+  const std::map<CURRENCY, std::string> CTOS = {
+    {EUR, "EUR"},
+    {USD, "USD"},
+  };
+  const std::map<std::string, CRYPTOTYPE> STOC = {
+    {"ETH", ETH},
+    {"VET", VET},
+    {"BTC", BTC},
+    {"CKB", CKB},
   };
   struct Statistic {
     std::string datetime;

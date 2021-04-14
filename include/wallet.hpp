@@ -97,5 +97,12 @@ namespace cwo {
       ~BitcoinWallet();
       void update();
   }; // class BitcoinWallet
+
+  class NervosWallet : public Wallet {
+    public:
+      NervosWallet(std::string_view address, std::string_view walleturl);
+      ~NervosWallet();
+      void update();
+  }; // class NervosWallet
 }; // namespace cwo
 #endif // INCLUDE_WALLET_HPP

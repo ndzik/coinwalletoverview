@@ -162,4 +162,20 @@ namespace cwo {
       return;
     _balance = atof(buffer.c_str())*std::pow(10, -8);
   }
+
+  /********************** NERVOSWALLET **************************************/
+  NervosWallet::NervosWallet(std::string_view address,
+          std::string_view walleturl)
+      : Wallet(CKB, address, walleturl)
+  { }
+
+  NervosWallet::~NervosWallet()
+  { }
+
+
+  void NervosWallet::update()
+  {
+    _balance = 700000;
+  }
+
 }; // namespace cwo
