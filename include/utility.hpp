@@ -1,6 +1,7 @@
 #ifndef INCLUDE_UTILITY_HPP
 #define INCLUDE_UTILITY_HPP
 #include <map>
+#include <string>
 
 #define DBNAME(x) x "DATA"
 
