@@ -35,7 +35,6 @@ namespace cwo {
   {
     /* start model */
     _worker = new std::thread([this] (View *v) {
-        loadstate();
         Model *m = new Model();
         m->addobs(v);
         v->registermodel(m);

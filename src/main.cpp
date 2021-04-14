@@ -10,6 +10,12 @@ using namespace cwo;
 int main()
 {
   View v;
+  if (!v.loadstate()) {
+      std::cout
+          << "Please setup a configuration as described on the github page"
+          << std::endl;
+      return 1;
+  }
   v.run();
   return 0;
 }
