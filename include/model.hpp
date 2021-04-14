@@ -18,7 +18,6 @@
 #include "wallet.hpp"
 #include "json.hpp"
 #include "utility.hpp"
-#include "coinmarketcap.hpp"
 #include "coingecko.hpp"
 #include "walletfactory.hpp"
 #include "observable.hpp"

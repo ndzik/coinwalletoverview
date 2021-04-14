@@ -27,11 +27,6 @@ namespace cwo {
   /* this can be done smarter with a single map mapping things to api related
    * structs. at least for most of the stuff here...
    */
-  const std::map<CRYPTOTYPE, std::string> CRYPTO = {
-    {ETH, "1027"},
-    {VET, "3077"},
-    {BTC, "1"}
-  };
   const std::map<CRYPTOTYPE, std::string> CRYPTOG = {
     {ETH, "ethereum"},
     {VET, "vechain"},

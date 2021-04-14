@@ -66,4 +66,4 @@ namespace cwo {
       nlohmann::json _data;
   }; // class API
 }; // namespace cwo
-#endif // INCLUDE_COINMARKETCAP_HPP
+#endif // INCLUDE_API_HPP
