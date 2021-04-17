@@ -1,183 +1,183 @@
 #ifndef INCLUDE_VIEW_HPP
 #define INCLUDE_VIEW_HPP
-#include <ncurses.h>
-#include <sstream>
-#include <string>
-#include <fstream>
-#include <filesystem>
-#include <stdlib.h>
 #include "json.hpp"
 #include "model.hpp"
-#include "observer.hpp"
 #include "observable.hpp"
+#include "observer.hpp"
+#include <filesystem>
+#include <fstream>
+#include <ncurses.h>
+#include <sstream>
+#include <stdlib.h>
+#include <string>
 namespace cwo {
 
+/*
+ * Class responsible for displaying gathered information for
+ * CoinWalletOverview
+ */
+class View : public Observer {
+public:
+  View();
+
+  ~View();
+
   /*
-   * Class responsible for displaying gathered information for
-   * CoinWalletOverview
+   * Implemented virtual function of Observer class to trigger visual
+   * update
    */
-  class View : public Observer {
-    public:
+  void update();
 
-      View();
+  /*
+   * Check if terminalwindow was resized
+   */
+  bool checkresize();
 
-      ~View();
+  /*
+   * Load $USER/.config/cwo/state.json file to retrieve wallet information
+   */
+  bool loadstate();
 
-      /*
-       * Implemented virtual function of Observer class to trigger visual
-       * update
-       */
-      void update();
+  /*
+   * Register a model to use with this application
+   */
+  void registermodel(Model *m);
 
-      /*
-       * Check if terminalwindow was resized
-       */
-      bool checkresize();
+  /*
+   * Displays walletinformation for alle registered wallets
+   * @param win : Window in which to draw
+   * @param h : height of available window
+   * @param w : widht of available window
+   */
+  void displaywalletinfo(WINDOW *win, int h, int w);
 
-      /*
-       * Load $USER/.config/cwo/state.json file to retrieve wallet information
-       */
-      bool loadstate();
+  /*
+   * How are graphwindows expanded if space below or to the side is
+   * available
+   */
+  void hgraphexpansion();
+  void vgraphexpansion();
 
-      /*
-       * Register a model to use with this application
-       */
-      void registermodel(Model *m);
+  /*
+   * Main run function for this class
+   */
+  void run();
 
-      /*
-       * Displays walletinformation for alle registered wallets
-       * @param win : Window in which to draw
-       * @param h : height of available window
-       * @param w : widht of available window
-       */
-      void displaywalletinfo(WINDOW *win, int h, int w);
+private:
+  int _basex, _basey, _ux, _uy;
+  Model *_m;
+  WINDOW *overviewwin, *coinviewwin, *debugwin;
+  int _state;
+  bool _wait;
+  bool _running;
+  bool _szchanged;
+  bool _updated;
+  nlohmann::json _jdata;
+  std::thread *_worker;
+  std::vector<std::pair<WINDOW *, WINDOW *>> _graphs;
 
-      /*
-       * How are graphwindows expanded if space below or to the side is
-       * available
-       */
-      void hgraphexpansion();
-      void vgraphexpansion();
+  int MINGRAPHWIDTH = 50;
+  int LOFFSETIG = 8;
+  int BOFFESTIG = 0;
+  ALIGNMENT GRAPHEXPANSION = HORIZONTAL;
+  bool FILL = true;
+  DATARES DATARESOLUTION = M;
+  const char *GRAPH_SYMBOL = "*";
 
-      /*
-       * Main run function for this class
-       */
-      void run();
+  /*
+   * Returns a ascii representation of a cryptoasset if available
+   */
+  std::array<std::string, 8> asciicrypto(CRYPTOTYPE t);
 
-    private:
-      int _basex, _basey, _ux, _uy;
-      Model *_m;
-      WINDOW *overviewwin, *coinviewwin, *debugwin;
-      int _state;
-      bool _wait;
-      bool _running;
-      bool _szchanged;
-      bool _updated;
-      nlohmann::json _jdata;
-      std::thread *_worker;
-      std::vector<std::pair<WINDOW*, WINDOW*>> _graphs;
+  /*
+   * Creates a simple window with a label and a box surrounding it
+   */
+  WINDOW *createbutton(int h, int w, int y, int x, const char *label);
 
-      int MINGRAPHWIDTH = 50;
-      int LOFFSETIG = 8;
-      int BOFFESTIG = 0;
-      ALIGNMENT GRAPHEXPANSION = HORIZONTAL;
-      bool FILL = true;
-      DATARES DATARESOLUTION = M;
-      const char* GRAPH_SYMBOL = "*";
+  /*
+   * Create graph windows for each registered cryptocurrency
+   */
+  void creategraphs();
 
-      /*
-       * Returns a ascii representation of a cryptoasset if available
-       */
-      std::array<std::string,8> asciicrypto(CRYPTOTYPE t);
+  /*
+   * Draw points with provided data v into graphwindow g with range
+   * specifying min and max values
+   */
+  void drawgraph(std::pair<WINDOW *, WINDOW *> g,
+                 const std::vector<Statistic> &v,
+                 const std::array<double, 2> range);
 
-      /*
-       * Creates a simple window with a label and a box surrounding it
-       */
-      WINDOW* createbutton(int h, int w, int y, int x, const char* label);
+  /*
+   * Draw metainformation for cryptoassets
+   */
+  void drawmetainfo();
 
-      /*
-       * Create graph windows for each registered cryptocurrency
-       */
-      void creategraphs();
+  /*
+   * Draw coordinate system for graphwindow g
+   */
+  void drawcoord(std::pair<WINDOW *, WINDOW *> g);
 
-      /*
-       * Draw points with provided data v into graphwindow g with range
-       * specifying min and max values
-       */
-      void drawgraph(std::pair<WINDOW*, WINDOW*> g,
-          const std::vector<Statistic> &v, const std::array<double, 2> range);
+  /*
+   * Draw ascii representation of crypto asset
+   */
+  void drawascii(WINDOW *w, CRYPTOTYPE t);
 
-      /*
-       * Draw metainformation for cryptoassets
-       */
-      void drawmetainfo();
+  /*
+   * Wrapperfunction to draw coordinate system and graphinformation
+   * for each registered cryptoasset
+   */
+  void displaygraphinfo();
 
-      /*
-       * Draw coordinate system for graphwindow g
-       */
-      void drawcoord(std::pair<WINDOW*, WINDOW*> g);
+  /*
+   * Handle main menu windows after resize event happened
+   */
+  void adjustmainwins();
 
-      /*
-       * Draw ascii representation of crypto asset
-       */
-      void drawascii(WINDOW *w, CRYPTOTYPE t);
+  /*
+   * Handle graphwindows after resize event happened
+   */
+  void adjustgraphs();
 
-      /*
-       * Wrapperfunction to draw coordinate system and graphinformation
-       * for each registered cryptoasset
-       */
-      void displaygraphinfo();
+  /*
+   * Graphsymbol
+   */
+  const char *choosegraphsymbol(double oldp, double curp, double nexp);
 
-      /*
-       * Handle main menu windows after resize event happened
-       */
-      void adjustmainwins();
+  /*
+   * Bitmask has 1 where a window should be and 0 where space is left
+   * General layout will be a multiple of the most windows fitting in one
+   * line e.g.:
+   *          v.size() = 4   | v.size() = 2  | v.size = 3
+   *          | 1 | 1 | 1 |  | | 1 | 1 |     | | 1 | 1 | 1 |
+   *          | 1 | 0 | 0 |  |               |
+   * @returns number of graphs per line
+   */
+  int setbitmask(std::vector<uint8_t> *v, int maxy, int maxx);
 
-      /*
-       * Handle graphwindows after resize event happened
-       */
-      void adjustgraphs();
+  /*
+   * Draw main menu
+   */
+  void mainmenu();
 
-      /*
-       * Graphsymbol
-       */
-      const char* choosegraphsymbol(double oldp, double curp, double nexp);
+  /*
+   * Auxiliary function for deciding width/height of a graph-window
+   * and y and x position
+   * @returns bool -> true if a window is to be created
+   */
+  bool calcgraphdimensions(std::vector<uint8_t> *v, int gpl, int &houtergraph,
+                           int &woutergraph, int hratio, int wratio,
+                           uint32_t ln, int32_t j, int &y, int &x);
 
-      /*
-       * Bitmask has 1 where a window should be and 0 where space is left
-       * General layout will be a multiple of the most windows fitting in one
-       * line e.g.:
-       *          v.size() = 4   | v.size() = 2  | v.size = 3
-       *          | 1 | 1 | 1 |  | | 1 | 1 |     | | 1 | 1 | 1 |
-       *          | 1 | 0 | 0 |  |               |
-       * @returns number of graphs per line
-       */
-      int setbitmask(std::vector<uint8_t> *v, int maxy, int maxx);
+  /*
+   * Auxiliary function to decide on which currency symbol to use
+   */
+  const char *currencysymbol(CURRENCY c);
 
-      /*
-       * Draw main menu
-       */
-      void mainmenu();
+  /*
+   * Auxiliary function for debugwin
+   */
+  void debugmessage(const char *);
 
-      /*
-       * Auxiliary function for deciding width/height of a graph-window
-       * and y and x position
-       * @returns bool -> true if a window is to be created
-       */
-      bool calcgraphdimensions(std::vector<uint8_t> *v, int gpl,
-      int &houtergraph, int &woutergraph, int hratio, int wratio,
-      uint32_t ln, int32_t j, int &y, int &x);
-
-      /*
-       * Auxiliary function to decide on which currency symbol to use
-       */
-      const char* currencysymbol(CURRENCY c);
-
-      /*
-       * Auxiliary function for debugwin
-       */
-      void debugmessage(const char *);
-
-  }; // class View
-}; // namespace cwo
+};     // class View
+};     // namespace cwo
 #endif // INCLUDE_VIEW_HPP
