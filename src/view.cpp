@@ -468,13 +468,21 @@ void View::drawgraph(std::pair<WINDOW *, WINDOW *> g,
     else {
       GRAPH_SYMBOL = "*";
     }
-    wattron(g.second, COLOR_PAIR(2));
+    auto col = COLOR_PAIR(2);
+    if (strcmp(GRAPH_SYMBOL, "/") == 0 || strcmp(GRAPH_SYMBOL, "_") == 0) {
+      col = COLOR_PAIR(3);
+    }
+    else if (strcmp(GRAPH_SYMBOL, "\\") == 0) {
+      col = COLOR_PAIR(4);
+    }
+
+    wattron(g.second, col);
     mvwprintw(g.second, y, x, GRAPH_SYMBOL);
     if (FILL) {
       wmove(g.second, y + 1, x);
       wvline(g.second, ACS_BLOCK, maxy - y);
     }
-    wattroff(g.second, COLOR_PAIR(2));
+    wattroff(g.second, col);
     strformat = v[i].price > 1 ? "%4.3f" : "%1.6f";
     mvwprintw(g.second, y, 0, strformat, v[i].price);
   }

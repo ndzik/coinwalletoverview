@@ -81,7 +81,7 @@ private:
   int BOFFESTIG = 0;
   ALIGNMENT GRAPHEXPANSION = HORIZONTAL;
   bool FILL = true;
-  DATARES DATARESOLUTION = M;
+  DATARES DATARESOLUTION = H;
   const char *GRAPH_SYMBOL = "*";
 
   /*
